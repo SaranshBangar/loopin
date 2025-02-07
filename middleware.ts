@@ -10,12 +10,12 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
 
-        // Allow access to the auth routes and the home page
+        // Allow access to auth routes and public pages
         if (pathname.startsWith("/api/auth") || pathname === "/login" || pathname === "/register") {
           return true;
         }
 
-        // Allow access to the videos API and the home page
+        // Allow access to videos API and home page
         if (pathname === "/" || pathname.startsWith("/api/videos")) {
           return true;
         }
@@ -27,5 +27,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|public/).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|(?:.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico))).*)"],
 };
