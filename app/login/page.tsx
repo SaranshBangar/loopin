@@ -13,10 +13,11 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { apiClient } from "@/lib/api-client";
 import { Loader2 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   identifier: z.string().min(1, "This field is required"),
-  password: z.string(),
+  password: z.string().min(1, "Password is required"),
 });
 
 const Login = () => {
@@ -32,15 +33,49 @@ const Login = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const loadingToast = toast({
+      title: "Logging in...",
+      description: "Please wait while we verify your credentials",
+    });
+
     setLoading(true);
     try {
-      const data = await apiClient.loginUser(form.getValues("identifier"), form.getValues("password"));
-      console.log(data);
-      setLoading(false);
+      const data = (await apiClient.loginUser(values.identifier, values.password)) as { error?: string };
+
+      loadingToast.dismiss();
+
+      if (data.error) {
+        toast({
+          variant: "destructive",
+          title: "Authentication failed",
+          description: data.error || "Invalid credentials. Please try again.",
+        });
+      } else {
+        toast({
+          variant: "default",
+          title: "Welcome back!",
+          description: "You have successfully logged in.",
+          className: "bg-green-500 text-white",
+        });
+      }
     } catch (error) {
-      console.error("Failed to login user : ", error);
+      console.error("Failed to login user:", error);
+      toast({
+        variant: "destructive",
+        title: "Something went wrong",
+        description: "There was a problem connecting to the server. Please try again later.",
+      });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const handleForgotPassword = () => {
+    toast({
+      title: "Password Reset",
+      description: "Password reset functionality coming soon!",
+      variant: "default",
+    });
   };
 
   return (
@@ -93,15 +128,16 @@ const Login = () => {
                     )}
                   />
 
-                  {loading ? (
-                    <Button disabled className="w-full">
-                      <Loader2 className="animate-spin" />
-                    </Button>
-                  ) : (
-                    <Button type="submit" className="w-full">
-                      Login
-                    </Button>
-                  )}
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Logging in...
+                      </>
+                    ) : (
+                      "Login"
+                    )}
+                  </Button>
                 </form>
               </Form>
             </Tabs>
@@ -113,7 +149,7 @@ const Login = () => {
                 Register here
               </Link>
             </div>
-            <Button variant="link" className="text-sm">
+            <Button variant="link" className="text-sm" onClick={handleForgotPassword}>
               Forgot password?
             </Button>
           </CardFooter>

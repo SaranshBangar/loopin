@@ -17,6 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { apiClient } from "@/lib/api-client";
+import { toast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -53,15 +54,57 @@ const Register = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    // Show loading toast
+    const loadingToast = toast({
+      title: "Creating your account",
+      description: "Please wait while we set up your account...",
+    });
+
     setLoading(true);
     try {
-      const data = await apiClient.registerUser(form.getValues("email"), form.getValues("username"), form.getValues("password"));
-      console.log(data);
-      setLoading(false);
+      const data = (await apiClient.registerUser(values.email, values.username, values.password)) as { error?: string };
+
+      // Dismiss loading toast
+      loadingToast.dismiss();
+
+      if (data.error) {
+        toast({
+          variant: "destructive",
+          title: "Registration failed",
+          description: data.error || "This username or email might already be taken.",
+        });
+      } else {
+        toast({
+          variant: "default",
+          title: "Registration successful! 🎉",
+          description: "Your account has been created. Redirecting to login...",
+          className: "bg-green-500 text-white",
+        });
+
+        // Wait a moment before redirecting
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
+      }
     } catch (error) {
-      console.error("Failed to login user : ", error);
+      console.error("Failed to register user:", error);
+      toast({
+        variant: "destructive",
+        title: "Something went wrong",
+        description: "There was a problem creating your account. Please try again later.",
+      });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  // Show toast when form validation fails
+  const handleInvalidSubmit = () => {
+    toast({
+      variant: "destructive",
+      title: "Invalid form data",
+      description: "Please check your inputs and try again.",
+    });
   };
 
   return (
@@ -75,7 +118,7 @@ const Register = () => {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit, handleInvalidSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="email"
@@ -162,7 +205,12 @@ const Register = () => {
                               <Calendar
                                 mode="single"
                                 selected={field.value}
-                                onSelect={field.onChange}
+                                onSelect={(date) => {
+                                  field.onChange(date);
+                                  if (date) {
+                                    setInputValue(format(date, "dd-MM-yyyy"));
+                                  }
+                                }}
                                 disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                                 initialFocus
                               />
@@ -175,15 +223,16 @@ const Register = () => {
                   }}
                 />
 
-                {loading ? (
-                  <Button disabled className="w-full">
-                    <Loader2 className="animate-spin" />
-                  </Button>
-                ) : (
-                  <Button type="submit" disabled={loading} className="w-full">
-                    Login
-                  </Button>
-                )}
+                <Button type="submit" disabled={loading} className="w-full">
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating account...
+                    </>
+                  ) : (
+                    "Create Account"
+                  )}
+                </Button>
               </form>
             </Form>
           </CardContent>
