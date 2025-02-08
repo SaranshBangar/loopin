@@ -12,8 +12,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { apiClient } from "@/lib/api-client";
-import { Loader2 } from "lucide-react";
+import { Loader2, Router } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   identifier: z.string().min(1, "This field is required"),
@@ -21,6 +22,8 @@ const formSchema = z.object({
 });
 
 const Login = () => {
+  const router = useRouter();
+
   const [loginMethod, setLoginMethod] = useState<"username" | "email">("username");
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -57,6 +60,7 @@ const Login = () => {
           description: "You have successfully logged in.",
           className: "bg-green-500 text-white",
         });
+        router.push("/");
       }
     } catch (error) {
       console.error("Failed to login user:", error);
