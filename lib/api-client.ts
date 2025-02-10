@@ -1,5 +1,4 @@
 import { InterfaceVideo } from "@/models/Video";
-import exp from "constants";
 
 export type VideoData = Omit<InterfaceVideo, "_id" | "createdAt">;
 
@@ -58,6 +57,13 @@ class ApiClient {
     return this.fetch("/auth/register", {
       method: "POST",
       body: { email, username, password },
+    });
+  }
+
+  async validateUsername(username: string) {
+    return this.fetch("/auth/register/username", {
+      method: "POST",
+      body: { username },
     });
   }
 }

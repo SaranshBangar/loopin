@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +18,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { apiClient } from "@/lib/api-client";
 import { toast } from "@/hooks/use-toast";
+import { start } from "repl";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -40,7 +41,7 @@ const formSchema = z.object({
     }, "You must be at least 13 years old"),
 });
 
-const Register = () => {
+const page = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -53,57 +54,90 @@ const Register = () => {
     },
   });
 
+  const showToast = useCallback(
+    ({
+      title,
+      description,
+      variant = "default",
+      duration = 5000,
+    }: {
+      title: string;
+      description: string;
+      variant?: "default" | "destructive";
+      duration?: number;
+    }) => {
+      return toast({
+        title,
+        description,
+        variant,
+        duration,
+      });
+    },
+    []
+  );
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    // Show loading toast
-    const loadingToast = toast({
+    if (loading) return;
+
+    showToast({
       title: "Creating your account",
       description: "Please wait while we set up your account...",
+      duration: Infinity,
     });
 
     setLoading(true);
+
     try {
-      const data = (await apiClient.registerUser(values.email, values.username, values.password)) as { error?: string };
+      const usernameCheck = (await apiClient.validateUsername(values.username)) as any;
 
-      // Dismiss loading toast
-      loadingToast.dismiss();
+      if (usernameCheck.error?.startsWith("Username already exists")) {
+        showToast({
+          variant: "destructive",
+          title: "Username not available",
+          description: "This username is already taken. Please choose another one.",
+        });
+        return;
+      }
 
-      if (data.error) {
-        toast({
+      const existingUser = (await apiClient.registerUser(values.email, values.username, values.password)) as any;
+
+      if (existingUser.error) {
+        showToast({
           variant: "destructive",
           title: "Registration failed",
-          description: data.error || "This username or email might already be taken.",
+          description: "Your account already exists. Redirecting you to login...",
         });
-      } else {
-        toast({
-          variant: "default",
-          title: "Registration successful! 🎉",
-          description: "Your account has been created. Redirecting to login...",
-          className: "bg-green-500 text-white",
-        });
-
-        // Wait a moment before redirecting
-        setTimeout(() => {
-          router.push("/login");
-        }, 2000);
+        await new Promise((resolve) => setTimeout(resolve, 4000));
+        router.push("/login");
+        return;
       }
+
+      showToast({
+        title: "Welcome aboard! 🎉",
+        description: "Your account has been created successfully. Redirecting you to login...",
+        duration: 3000,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      router.push("/login");
     } catch (error) {
-      console.error("Failed to register user:", error);
-      toast({
+      console.error("Registration error:", error);
+      showToast({
         variant: "destructive",
-        title: "Something went wrong",
-        description: "There was a problem creating your account. Please try again later.",
+        title: "Registration failed",
+        description: "Something went wrong. Please try again.",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  // Show toast when form validation fails
   const handleInvalidSubmit = () => {
-    toast({
+    showToast({
       variant: "destructive",
       title: "Invalid form data",
       description: "Please check your inputs and try again.",
+      duration: 4000,
     });
   };
 
@@ -126,7 +160,7 @@ const Register = () => {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter your email" type="email" {...field} />
+                        <Input placeholder="Enter your email" type="email" {...field} disabled={loading} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -140,7 +174,7 @@ const Register = () => {
                     <FormItem>
                       <FormLabel>Username</FormLabel>
                       <FormControl>
-                        <Input placeholder="Choose a username" {...field} />
+                        <Input placeholder="Choose a username" {...field} disabled={loading} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -154,7 +188,7 @@ const Register = () => {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input placeholder="Create a password" type="password" {...field} />
+                        <Input placeholder="Create a password" type="password" {...field} disabled={loading} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -178,7 +212,6 @@ const Register = () => {
                         const [_, day, month, year] = match;
                         const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
-                        // Validate if it's a real date and within allowed range
                         if (!isNaN(date.getTime()) && date >= new Date("1900-01-01") && date <= new Date()) {
                           field.onChange(date);
                         }
@@ -194,10 +227,11 @@ const Register = () => {
                             value={inputValue}
                             onChange={handleInputChange}
                             className={cn("w-full pl-3 pr-10", !field.value && "text-muted-foreground")}
+                            disabled={loading}
                           />
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button variant="ghost" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent">
+                              <Button variant="ghost" className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent" disabled={loading}>
                                 <CalendarIcon className="h-4 w-4 opacity-50" />
                               </Button>
                             </PopoverTrigger>
@@ -211,7 +245,7 @@ const Register = () => {
                                     setInputValue(format(date, "dd-MM-yyyy"));
                                   }
                                 }}
-                                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                                disabled={(date) => date > new Date() || date < new Date("1900-01-01") || loading}
                                 initialFocus
                               />
                             </PopoverContent>
@@ -223,10 +257,10 @@ const Register = () => {
                   }}
                 />
 
-                <Button type="submit" disabled={loading} className="w-full">
+                <Button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2">
                   {loading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       Creating account...
                     </>
                   ) : (
@@ -250,4 +284,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default page;
