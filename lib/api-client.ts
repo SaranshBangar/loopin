@@ -53,10 +53,10 @@ class ApiClient {
     });
   }
 
-  async registerUser(email: string, username: string, password: string) {
+  async registerUser(email: string, username: string, password: string, profilePicture: string) {
     return this.fetch("/auth/register", {
       method: "POST",
-      body: { email, username, password },
+      body: { email, username, password, profilePicture },
     });
   }
 

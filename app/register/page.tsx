@@ -99,7 +99,12 @@ const page = () => {
         return;
       }
 
-      const existingUser = (await apiClient.registerUser(values.email, values.username, values.password)) as any;
+      const existingUser = (await apiClient.registerUser(
+        values.email,
+        values.username,
+        values.password,
+        "https://images.pexels.com/photos/2071882/pexels-photo-2071882.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+      )) as any;
 
       if (existingUser.error) {
         showToast({

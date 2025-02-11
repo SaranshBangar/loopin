@@ -15,7 +15,16 @@ const userSchema = new Schema<InterfaceUser>(
   {
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    profilePicture: { type: String },
+    profilePicture: {
+      type: String,
+      default: "https://images.pexels.com/photos/2071882/pexels-photo-2071882.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+      validate: {
+        validator: function (v: string) {
+          return /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(v);
+        },
+        message: (props) => `${props.value} is not a valid image URL!`,
+      },
+    },
     username: { type: String, required: true, unique: true },
   },
   {

@@ -4,7 +4,7 @@ import User from "@/models/User";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, username } = await req.json();
+    const { email, password, username, profilePicture } = await req.json();
 
     if (!email || !password || !username) {
       return NextResponse.json({ error: "Please fill all fields" }, { status: 400 });
@@ -17,7 +17,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User already exists" }, { status: 400 });
     }
 
-    await User.create({ email, password, username });
+    await User.create({
+      email,
+      password,
+      username,
+      profilePicture,
+    });
 
     return NextResponse.json({ message: "User created successfully" }, { status: 201 });
   } catch (error) {
