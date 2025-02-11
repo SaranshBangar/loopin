@@ -11,7 +11,7 @@ import Header from "@/components/Header";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { apiClient } from "@/lib/api-client";
+import { signIn } from "next-auth/react";
 import { Loader2, Router } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -43,24 +43,29 @@ const Login = () => {
 
     setLoading(true);
     try {
-      const data = (await apiClient.loginUser(values.identifier, values.password)) as { error?: string };
+      const result = await signIn("credentials", {
+        identifier: values.identifier,
+        password: values.password,
+        redirect: false,
+      });
 
       loadingToast.dismiss();
 
-      if (data.error) {
+      if (result?.error) {
         toast({
           variant: "destructive",
           title: "Authentication failed",
-          description: data.error || "Invalid credentials. Please try again.",
+          description: "Invalid credentials. Please try again.",
         });
       } else {
         toast({
           variant: "default",
           title: "Welcome back!",
           description: "You have successfully logged in.",
-          className: "bg-green-500 text-white",
+          duration: 5000,
         });
         router.push("/");
+        router.refresh();
       }
     } catch (error) {
       console.error("Failed to login user:", error);
