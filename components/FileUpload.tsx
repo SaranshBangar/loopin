@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { IKUpload } from "imagekitio-next";
 import { IKUploadResponse } from "imagekitio-next/dist/types/components/IKUpload/props";
 import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-generator";
-import HdrWeakOutlinedIcon from "@mui/icons-material/HdrWeakOutlined";
 
 interface FileUploadProps {
   onSuccess: (res: IKUploadResponse) => void;
@@ -82,11 +81,7 @@ export default function FileUpload({ onSuccess, onProgress, fileType = "image" }
         onUploadStart={handleUploadStart}
         className="file-input file-input-bordered w-full"
       />
-      {uploading && (
-        <div className="flex items-center gap-2 text-sm">
-          <HdrWeakOutlinedIcon className="animate-spin" />
-        </div>
-      )}
+      {uploading && <div className="flex items-center gap-2 text-sm">Loading...</div>}
       {error && (
         <div className="text-red-500 text-sm" role="alert">
           {error}

@@ -1,15 +1,32 @@
 "use client";
-
-import React from "react";
 import { signOut, useSession } from "next-auth/react";
-import { Moon, Sun } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "next-themes";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import TitleText from "./TitleText";
+import { ThemeToggleButton, ThemeToggleSwitch } from "./ThemeToggle";
+import UserAvatar from "./UserAvatar";
+
+const navigationItems = [
+  { title: "Connections", href: "/connections" },
+  { title: "Settings", href: "/settings" },
+];
 
 const Header = () => {
-  const { setTheme } = useTheme();
   const { data: session } = useSession();
+  const pathname = usePathname();
+
+  const isLoginPage = pathname === "/login";
+  const isRegisterPage = pathname === "/register";
 
   const handleSignout = async () => {
     try {
@@ -19,38 +36,102 @@ const Header = () => {
     }
   };
 
-  const isClient = typeof window !== "undefined";
-  const isLoginPage = isClient && window.location.pathname === "/login";
-  const isRegisterPage = isClient && window.location.pathname === "/register";
-  const isHomePage = isClient && window.location.pathname === "/";
+  const UserMenu = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="default" className="h-10">
+          {session?.user?.username || "Account"}
+          <UserAvatar />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-48" align="end">
+        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/profile">Profile</Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/settings">Settings</Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>
+          <ThemeToggleSwitch />
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleSignout}>Sign out</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  const MobileMenu = () => (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="default" className="h-10 md:hidden">
+          {session?.user?.username || "Account"}
+          <UserAvatar />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="right">
+        <SheetHeader>
+          <SheetTitle>Menu</SheetTitle>
+        </SheetHeader>
+        <nav className="flex flex-col gap-4 mt-4">
+          <Link href="/profile" className="text-sm font-medium transition-colors hover:text-primary">
+            Profile
+          </Link>
+          {navigationItems.map((item) => (
+            <Link key={item.title} href={item.href} className="text-sm font-medium transition-colors hover:text-primary">
+              {item.title}
+            </Link>
+          ))}
+          <ThemeToggleSwitch />
+          <Button onClick={handleSignout} variant="ghost" className="justify-start p-0">
+            Sign out
+          </Button>
+        </nav>
+      </SheetContent>
+    </Sheet>
+  );
+
+  if (isLoginPage || isRegisterPage) {
+    return (
+      <header className="flex justify-between items-center p-4">
+        <TitleText />
+        <ThemeToggleButton />
+      </header>
+    );
+  }
 
   return (
-    <>
-      {isLoginPage || isRegisterPage ? (
-        <header className="flex justify-between items-center p-4">
-          <TitleText />
-          <div>
-            <Button variant="outline" size="icon" onClick={() => setTheme((theme) => (theme === "light" ? "dark" : "light"))}>
-              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="sr-only">Toggle theme</span>
-            </Button>
-          </div>
-        </header>
-      ) : null}
-      {isHomePage && (
-        <header className="flex justify-between items-center p-4">
-          <TitleText />
-          <div>
-            <Button variant="outline" size="icon" onClick={() => setTheme((theme) => (theme === "light" ? "dark" : "light"))}>
-              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="sr-only">Toggle theme</span>
-            </Button>
-          </div>
-        </header>
-      )}
-    </>
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 max-w-screen-2xl items-center justify-between px-4">
+        <TitleText />
+
+        <div className="flex items-center gap-2 sm:gap-4">
+          <nav className="hidden md:flex items-center space-x-4">
+            {navigationItems.map((item) => (
+              <Link
+                key={item.title}
+                href={item.href}
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  pathname === item.href ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                {item.title}
+              </Link>
+            ))}
+          </nav>
+          {session && (
+            <>
+              <div className="hidden md:block">
+                <UserMenu />
+              </div>
+              <MobileMenu />
+            </>
+          )}
+        </div>
+      </div>
+    </header>
   );
 };
 

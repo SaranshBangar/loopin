@@ -32,6 +32,11 @@ export default function Home() {
         email: session.user.email,
         username: session.user.username,
       });
+
+      if (typeof window !== "undefined" && session) {
+        window.document.title = `${session.user.username}` + " - loopin";
+      }
+
       fetchVideos();
     }
   }, [status, session]);
