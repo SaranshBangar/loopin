@@ -18,6 +18,10 @@ export interface InterfaceVideo {
     quality: number;
   };
   uploaderId: mongoose.Types.ObjectId;
+  viewsCount?: number;
+  likesCount?: number;
+  dislikesCount?: number;
+  savedCount?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -35,6 +39,10 @@ const videoSchema = new Schema<InterfaceVideo>(
       quality: { type: Number, min: 1, max: 100 },
     },
     uploaderId: { type: Schema.Types.ObjectId, ref: "User" },
+    viewsCount: { type: Number, default: 0 },
+    likesCount: { type: Number, default: 0 },
+    dislikesCount: { type: Number, default: 0 },
+    savedCount: { type: Number, default: 0 },
   },
   {
     timestamps: true,

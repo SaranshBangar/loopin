@@ -7,6 +7,12 @@ export interface InterfaceUser {
   password: string;
   profilePicture?: string;
   username: string;
+  connections?: mongoose.Types.ObjectId[];
+  uploadedContent?: mongoose.Types.ObjectId[];
+  viewedContent?: mongoose.Types.ObjectId[];
+  likedContent?: mongoose.Types.ObjectId[];
+  dislikedContent?: mongoose.Types.ObjectId[];
+  savedContent?: mongoose.Types.ObjectId[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -26,6 +32,12 @@ const userSchema = new Schema<InterfaceUser>(
       },
     },
     username: { type: String, required: true, unique: true },
+    connections: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    uploadedContent: [{ type: Schema.Types.ObjectId, ref: "Video" }],
+    viewedContent: [{ type: Schema.Types.ObjectId, ref: "Video" }],
+    likedContent: [{ type: Schema.Types.ObjectId, ref: "Video" }],
+    dislikedContent: [{ type: Schema.Types.ObjectId, ref: "Video" }],
+    savedContent: [{ type: Schema.Types.ObjectId, ref: "Video" }],
   },
   {
     timestamps: true,

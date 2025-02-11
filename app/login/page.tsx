@@ -65,7 +65,6 @@ const Login = () => {
           duration: 5000,
         });
         router.push("/");
-        router.refresh();
       }
     } catch (error) {
       console.error("Failed to login user:", error);
@@ -89,7 +88,6 @@ const Login = () => {
 
   return (
     <main className="h-screen flex flex-col overflow-hidden">
-      <Header />
       <div className="flex-1 flex items-center justify-center px-4">
         <Card className="w-full max-w-md">
           <CardHeader>

@@ -1,6 +1,8 @@
 import { Circle } from "lucide-react";
 import React from "react";
 import { useTheme } from "next-themes";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 const LoadingSpinner = () => {
   const { theme } = useTheme();
@@ -29,13 +31,24 @@ const LoadingSpinner = () => {
 };
 
 const TitleText = () => {
-  return (
+  const pathname = usePathname();
+  const showLink = pathname !== "/login" && pathname !== "/register";
+
+  const TitleContent = () => (
     <div className="flex items-center justify-start">
-      <h1 className="text-4xl font-bold tracking-tight text-primary scroll-m-20">l</h1>
+      <h1 className="text-4xl font-bold tracking-tight text-primary">l</h1>
       <Circle className="size-6 stroke-[6px] rounded-full ml-px" />
       <LoadingSpinner />
-      <h1 className="text-4xl font-bold tracking-tight text-primary scroll-m-20">pin</h1>
+      <h1 className="text-4xl font-bold tracking-tight text-primary">pin</h1>
     </div>
+  );
+
+  return showLink ? (
+    <Link href="/">
+      <TitleContent />
+    </Link>
+  ) : (
+    <TitleContent />
   );
 };
 

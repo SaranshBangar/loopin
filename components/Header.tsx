@@ -16,10 +16,7 @@ import TitleText from "./TitleText";
 import { ThemeToggleButton, ThemeToggleSwitch } from "./ThemeToggle";
 import UserAvatar from "./UserAvatar";
 
-const navigationItems = [
-  { title: "Connections", href: "/connections" },
-  { title: "Settings", href: "/settings" },
-];
+const navigationItems = [{ title: "Connections", href: "/connections" }];
 
 const Header = () => {
   const { data: session } = useSession();
@@ -48,7 +45,7 @@ const Header = () => {
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/profile">Profile</Link>
+          <Link href="/profile">My Profile</Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/settings">Settings</Link>
@@ -77,7 +74,7 @@ const Header = () => {
         </SheetHeader>
         <nav className="flex flex-col gap-4 mt-4">
           <Link href="/profile" className="text-sm font-medium transition-colors hover:text-primary">
-            Profile
+            My Profile
           </Link>
           {navigationItems.map((item) => (
             <Link key={item.title} href={item.href} className="text-sm font-medium transition-colors hover:text-primary">

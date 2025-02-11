@@ -5,6 +5,7 @@ import Providers from "../components/Providers";
 import { ThemeProvider } from "../components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import SessionProvider from "@/components/SessionProvider";
+import Header from "@/components/Header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <SessionProvider>
             <Providers>
+              <Header />
               {children}
               <Toaster />
             </Providers>

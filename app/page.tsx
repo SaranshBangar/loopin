@@ -47,7 +47,6 @@ export default function Home() {
 
   return (
     <main>
-      <Header />
       {session?.user?.email && (
         <div>
           <p>Welcome, {session.user.username}!</p>
